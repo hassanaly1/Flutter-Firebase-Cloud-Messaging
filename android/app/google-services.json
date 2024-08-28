@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "374472448870",
+    "project_id": "flutter-now-6e8cc",
+    "storage_bucket": "flutter-now-6e8cc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:374472448870:android:7ecba7906116224531c6a7",
+        "android_client_info": {
+          "package_name": "com.now.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmja39_bLoxhaqj-_3S49hZTq6EIkcPtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
