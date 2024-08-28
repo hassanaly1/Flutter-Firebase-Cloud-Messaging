@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginPage extends StatelessWidget {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
   final AuthController authController = Get.put(AuthController());
 
   @override
@@ -13,17 +11,18 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
+        backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
-              controller: emailController,
+              controller: authController.emailController,
               decoration: const InputDecoration(labelText: 'Email'),
             ),
             TextField(
-              controller: passwordController,
+              controller: authController.passwordController,
               decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
@@ -32,9 +31,7 @@ class LoginPage extends StatelessWidget {
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: () {
-                      String email = emailController.text.trim();
-                      String password = passwordController.text.trim();
-                      // authController.signIn(email, password);
+                      authController.loginUser();
                     },
                     child: const Text('Login'),
                   )),
@@ -44,6 +41,14 @@ class LoginPage extends StatelessWidget {
               },
               child: const Text('Don\'t have an account? Sign Up'),
             ),
+            Obx(() => authController.isLoading.value
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: () {
+                      authController.signInWithGoogle();
+                    },
+                    child: const Text('Sign In With Google'),
+                  )),
           ],
         ),
       ),

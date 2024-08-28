@@ -79,4 +79,15 @@ class UserController extends GetxController {
       return [];
     }
   }
+
+  // Check if a user exists in Firestore
+  Future<bool> checkUserExists(String uid) async {
+    try {
+      final doc = await _firestore.collection('Users').doc(uid).get();
+      return doc.exists;
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to check user existence: $e');
+      return false;
+    }
+  }
 }

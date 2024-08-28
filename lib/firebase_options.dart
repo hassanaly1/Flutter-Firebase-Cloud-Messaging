@@ -70,6 +70,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '374472448870',
     projectId: 'flutter-now-6e8cc',
     storageBucket: 'flutter-now-6e8cc.appspot.com',
+    androidClientId: '374472448870-m40kjgkp3qpq6vgpf3vf66t7lck130he.apps.googleusercontent.com',
+    iosClientId: '374472448870-i386r8l7r0ob7lnr3ndc1l044jq8uduh.apps.googleusercontent.com',
     iosBundleId: 'com.now.app',
   );
+
 }

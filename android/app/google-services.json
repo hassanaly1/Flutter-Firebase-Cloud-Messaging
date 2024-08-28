@@ -12,7 +12,20 @@
           "package_name": "com.now.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "374472448870-m40kjgkp3qpq6vgpf3vf66t7lck130he.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.now.app",
+            "certificate_hash": "17f98d4fb312b3975d5e23b109d685b04bfbb1f6"
+          }
+        },
+        {
+          "client_id": "374472448870-cgrtoscv9esjno2dnq6vf86ke1nmc4tm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBmja39_bLoxhaqj-_3S49hZTq6EIkcPtM"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "374472448870-cgrtoscv9esjno2dnq6vf86ke1nmc4tm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "374472448870-i386r8l7r0ob7lnr3ndc1l044jq8uduh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.now.app"
+              }
+            }
+          ]
         }
       }
     }
