@@ -62,6 +62,7 @@ class AuthService {
     }
   }
 
+  // Sign in with Google
   Future<UserCredential> signInWithGoogle() async {
     try {
       // Trigger the Google authentication flow
@@ -91,5 +92,35 @@ class AuthService {
     } catch (e) {
       throw 'Something went wrong, please try again later.';
     }
+  }
+
+  // Sign in with Phone Number
+  Future<void> signInWithPhoneNumber(
+      String phoneNumber, Function(String) codeSentCallback) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Automatically sign in the user when the verification is completed
+        await _auth.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        throw 'Phone number verification failed: ${e.message}';
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        // This callback is triggered when the verification code is sent
+        codeSentCallback(verificationId);
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        // Auto-resolution of the verification code timed out
+      },
+    );
+  }
+
+  // Verify SMS Code
+  Future<UserCredential> verifySmsCode(
+      String verificationId, String smsCode) async {
+    final credential = PhoneAuthProvider.credential(
+        verificationId: verificationId, smsCode: smsCode);
+    return await _auth.signInWithCredential(credential);
   }
 }

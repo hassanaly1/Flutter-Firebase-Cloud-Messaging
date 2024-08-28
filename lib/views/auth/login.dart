@@ -41,6 +41,7 @@ class LoginPage extends StatelessWidget {
               },
               child: const Text('Don\'t have an account? Sign Up'),
             ),
+            const SizedBox(height: 120),
             Obx(() => authController.isLoading.value
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
@@ -49,6 +50,12 @@ class LoginPage extends StatelessWidget {
                     },
                     child: const Text('Sign In With Google'),
                   )),
+            ElevatedButton(
+              onPressed: () {
+                authController.signInWithPhoneNumber('+923162136653');
+              },
+              child: const Text('Sign In with Phone Number'),
+            )
           ],
         ),
       ),

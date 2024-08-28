@@ -4,6 +4,7 @@ import 'package:app/controllers/user_controller.dart';
 import 'package:app/models/user_model.dart';
 import 'package:app/services/auth_service.dart';
 import 'package:app/views/auth/login.dart';
+import 'package:app/views/auth/otp.dart';
 import 'package:app/views/auth/signup.dart';
 import 'package:app/views/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +20,7 @@ class AuthController extends GetxController {
   final TextEditingController fullNameController = TextEditingController();
 
   late UserController userController;
+  late String _verificationId;
 
   @override
   void onInit() {
@@ -140,6 +142,60 @@ class AuthController extends GetxController {
         Get.snackbar(
             'Success', 'Signed in with Google and user saved to Firestore');
         // Navigate to another screen if needed
+        Get.offAll(() => const HomeScreen());
+      }
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Start the phone number sign-in process
+  void signInWithPhoneNumber(String phoneNumber) async {
+    try {
+      isLoading.value = true;
+      await _authService.signInWithPhoneNumber(phoneNumber,
+          (String verificationId) {
+        _verificationId = verificationId;
+        Get.snackbar(
+            'OTP Sent', 'A verification code has been sent to $phoneNumber');
+        // Navigate to the OTP input screen, for example:
+        Get.to(() => OtpInputScreen());
+      });
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Verify the SMS code
+  void verifySmsCode(String smsCode) async {
+    try {
+      isLoading.value = true;
+      final userCredential =
+          await _authService.verifySmsCode(_verificationId, smsCode);
+      final user = userCredential.user;
+
+      if (user != null) {
+        // Check if the user already exists in Firestore
+        final isExistingUser = await userController.checkUserExists(user.uid);
+
+        if (!isExistingUser) {
+          // Save user to Firestore if they don't exist
+          final newUser = UserModel(
+            uid: user.uid,
+            email: user.email ?? '',
+            fullName: user.displayName ?? '',
+            role: 'User',
+            phoneNumber: user.phoneNumber ?? '',
+            profile: user.photoURL ?? '',
+          );
+          await userController.addUser(newUser);
+        }
+
+        Get.snackbar('Success', 'Phone number verified and user signed in');
         Get.offAll(() => const HomeScreen());
       }
     } catch (e) {
