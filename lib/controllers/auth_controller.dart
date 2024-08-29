@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app/controllers/user_controller.dart';
 import 'package:app/models/user_model.dart';
@@ -7,25 +8,45 @@ import 'package:app/views/auth/login.dart';
 import 'package:app/views/auth/otp.dart';
 import 'package:app/views/auth/signup.dart';
 import 'package:app/views/home.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService = AuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   var isLoading = false.obs;
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController fullNameController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  Rx<File> profileImage = File('').obs;
 
   late UserController userController;
-  late String _verificationId;
+  late String _verificationId; //For PhoneNumber Verification
+
+  var userModel = UserModel().obs;
 
   @override
   void onInit() {
     userController = Get.put(UserController());
+    _fetchCurrentUser();
     super.onInit();
+  }
+
+  void _fetchCurrentUser() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      final userDoc = await _firestore.collection('Users').doc(uid).get();
+      if (userDoc.exists) {
+        userModel.value = UserModel.fromJson(userDoc);
+      }
+    }
   }
 
   Future<void> loginUser() async {
@@ -42,7 +63,7 @@ class AuthController extends GetxController {
           Get.offAll(() => const HomeScreen());
         } else {
           // User is logged in but email is not verified
-          Get.offAll(() => SignupPage());
+          Get.offAll(() => const SignupPage());
           Get.snackbar('Error', 'Please verify your email before logging in.');
         }
       }
@@ -66,8 +87,11 @@ class AuthController extends GetxController {
         Get.snackbar('Verification Sent',
             'Please check your email to verify your account.');
 
+        // Upload profile image
+        final profileImageUrl = await _uploadProfileImage(user.uid);
+
         // Start checking email verification status
-        _checkEmailVerified();
+        _checkEmailVerified(profileImageUrl);
       }
     } catch (e) {
       Get.snackbar('Error', e.toString());
@@ -76,7 +100,7 @@ class AuthController extends GetxController {
     }
   }
 
-  void _checkEmailVerified() {
+  void _checkEmailVerified(String profileImageUrl) {
     isLoading.value = true;
     Timer.periodic(const Duration(seconds: 1), (timer) async {
       await FirebaseAuth.instance.currentUser?.reload();
@@ -85,7 +109,7 @@ class AuthController extends GetxController {
         timer.cancel();
         isLoading.value = false;
         Get.snackbar('Email Verified Successfully', 'Please login.');
-        Get.offAll(() => LoginPage());
+        Get.offAll(() => const LoginPage());
 
         // Save user to Firestore
         final newUser = UserModel(
@@ -94,7 +118,7 @@ class AuthController extends GetxController {
           fullName: fullNameController.text.trim(),
           role: 'User',
           phoneNumber: '',
-          profile: '',
+          profile: profileImageUrl,
         );
         try {
           await userController.addUser(newUser);
@@ -105,11 +129,22 @@ class AuthController extends GetxController {
     });
   }
 
+  void forgotPassword(String email) async {
+    try {
+      await _authService.resetPassword(email);
+      Get.snackbar('Success', 'Password reset email sent');
+      Get.offAll(() => const LoginPage());
+      Get.snackbar('Success', 'Please login with your new password');
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    }
+  }
+
   Future<void> logout() async {
     try {
       await _authService.logout();
       Get.snackbar('Success', 'Logged out successfully');
-      Get.offAll(() => LoginPage());
+      Get.offAll(() => const LoginPage());
     } catch (e) {
       Get.snackbar('Error', e.toString());
     }
@@ -202,6 +237,31 @@ class AuthController extends GetxController {
       Get.snackbar('Error', e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Pick Image from Gallery
+  Future<void> pickProfileImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      profileImage.value = File(pickedFile.path);
+    } else {
+      Get.snackbar('Error', 'No image selected');
+    }
+  }
+
+  // Upload Profile Image to Firebase Storage
+  Future<String> _uploadProfileImage(String userId) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_images')
+          .child('$userId.jpg');
+      final uploadTask = storageRef.putFile(profileImage.value);
+      final snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('Failed to upload profile image');
     }
   }
 }

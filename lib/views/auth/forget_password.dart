@@ -2,17 +2,18 @@ import 'package:app/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class OtpInputScreen extends StatelessWidget {
+class ForgetPasswordScreen extends StatelessWidget {
   final AuthController authController = Get.find();
-  final TextEditingController smsCodeController = TextEditingController();
+  final TextEditingController forgetPasswordController =
+      TextEditingController();
 
-  OtpInputScreen({super.key});
+  ForgetPasswordScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Enter OTP'),
+        title: const Text('Forget Password'),
         backgroundColor: Colors.blueAccent,
       ),
       body: SingleChildScrollView(
@@ -21,16 +22,17 @@ class OtpInputScreen extends StatelessWidget {
           child: Column(
             children: [
               TextField(
-                controller: smsCodeController,
-                decoration: const InputDecoration(labelText: 'OTP'),
-                keyboardType: TextInputType.number,
+                controller: forgetPasswordController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  authController.verifySmsCode(smsCodeController.text.trim());
+                  authController
+                      .forgotPassword(forgetPasswordController.text.trim());
                 },
-                child: const Text('Verify OTP'),
+                child: const Text('Send Forget Password Link'),
               ),
             ],
           ),

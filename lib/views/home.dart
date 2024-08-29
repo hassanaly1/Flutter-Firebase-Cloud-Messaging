@@ -17,7 +17,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Home'),
+          leading: Obx(() {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CircleAvatar(
+                backgroundImage:
+                    NetworkImage(_authController.userModel.value.profile ?? ''),
+              ),
+            );
+          }),
+          title: Obx(() {
+            return Text(_authController.userModel.value.fullName ?? 'User');
+          }),
           backgroundColor: Colors.blueAccent,
           actions: [
             IconButton(
@@ -25,6 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.logout),
             ),
           ],
+        ),
+        body: Center(
+          child: Text(
+              'Welcome, ${_authController.userModel.value.fullName ?? 'User'}!'),
         ),
       ),
     );
