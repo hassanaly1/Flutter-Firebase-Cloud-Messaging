@@ -34,11 +34,11 @@ class _SignupPageState extends State<SignupPage> {
                 child: Obx(
                   () => CircleAvatar(
                     radius: 50,
-                    backgroundImage: authController.profileImage.value.path !=
-                            ''
-                        ? FileImage(authController.profileImage.value)
+                    backgroundImage: authController.profileImage.value != null
+                        ? FileImage(authController.profileImage.value!)
                         : const NetworkImage(
-                            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+                          ),
                   ),
                 ),
               ),
@@ -57,14 +57,16 @@ class _SignupPageState extends State<SignupPage> {
                 obscureText: true,
               ),
               const SizedBox(height: 20),
-              Obx(() => authController.isLoading.value
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: () {
-                        authController.registerUser();
-                      },
-                      child: const Text('Sign Up'),
-                    )),
+              Obx(
+                () => authController.isLoading.value
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: () async {
+                          await authController.registerUser();
+                        },
+                        child: const Text('Sign Up'),
+                      ),
+              ),
               TextButton(
                 onPressed: () {
                   Get.to(() => const LoginPage());

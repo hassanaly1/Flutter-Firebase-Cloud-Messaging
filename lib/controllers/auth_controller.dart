@@ -8,7 +8,6 @@ import 'package:app/views/auth/login.dart';
 import 'package:app/views/auth/otp.dart';
 import 'package:app/views/auth/signup.dart';
 import 'package:app/views/home.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -17,15 +16,16 @@ import 'package:image_picker/image_picker.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService = AuthService();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   var isLoading = false.obs;
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController fullNameController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  Rx<File> profileImage = File('').obs;
+
+  // Rx<File>? profileImage;
+  Rx<File?> profileImage = Rx<File?>(null);
 
   late UserController userController;
   late String _verificationId; //For PhoneNumber Verification
@@ -35,18 +35,8 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     userController = Get.put(UserController());
-    _fetchCurrentUser();
-    super.onInit();
-  }
 
-  void _fetchCurrentUser() async {
-    final uid = _auth.currentUser?.uid;
-    if (uid != null) {
-      final userDoc = await _firestore.collection('Users').doc(uid).get();
-      if (userDoc.exists) {
-        userModel.value = UserModel.fromJson(userDoc);
-      }
-    }
+    super.onInit();
   }
 
   Future<void> loginUser() async {
@@ -88,7 +78,7 @@ class AuthController extends GetxController {
             'Please check your email to verify your account.');
 
         // Upload profile image
-        final profileImageUrl = await _uploadProfileImage(user.uid);
+        final profileImageUrl = await uploadProfileImage(user.uid);
 
         // Start checking email verification status
         _checkEmailVerified(profileImageUrl);
@@ -117,7 +107,7 @@ class AuthController extends GetxController {
           email: emailController.text.trim(),
           fullName: fullNameController.text.trim(),
           role: 'User',
-          phoneNumber: '',
+          phoneNumber: null,
           profile: profileImageUrl,
         );
         try {
@@ -143,6 +133,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     try {
       await _authService.logout();
+      userModel.value = UserModel();
       Get.snackbar('Success', 'Logged out successfully');
       Get.offAll(() => const LoginPage());
     } catch (e) {
@@ -221,11 +212,11 @@ class AuthController extends GetxController {
           // Save user to Firestore if they don't exist
           final newUser = UserModel(
             uid: user.uid,
-            email: user.email ?? '',
-            fullName: user.displayName ?? '',
+            email: user.email,
+            fullName: user.displayName,
             role: 'User',
-            phoneNumber: user.phoneNumber ?? '',
-            profile: user.photoURL ?? '',
+            phoneNumber: user.phoneNumber,
+            profile: user.photoURL,
           );
           await userController.addUser(newUser);
         }
@@ -251,17 +242,32 @@ class AuthController extends GetxController {
   }
 
   // Upload Profile Image to Firebase Storage
-  Future<String> _uploadProfileImage(String userId) async {
+  Future<String> uploadProfileImage(String userId) async {
     try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('profile_images')
-          .child('$userId.jpg');
-      final uploadTask = storageRef.putFile(profileImage.value);
-      final snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
+      if (profileImage.value != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_images')
+            .child('$userId.jpg');
+        final uploadTask = storageRef.putFile(profileImage.value!);
+        final snapshot = await uploadTask;
+        return await snapshot.ref.getDownloadURL();
+      } else {
+        return '';
+      }
     } catch (e) {
       throw Exception('Failed to upload profile image');
     }
   }
+
+// // Delete the previous profile image from Firebase Storage
+// Future<void> deleteProfileImage(String imageUrl) async {
+//   try {
+//     final storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
+//
+//     await storageRef.delete();
+//   } catch (e) {
+//     Get.snackbar('Error', 'Failed to delete old profile image: $e');
+//   }
+// }
 }

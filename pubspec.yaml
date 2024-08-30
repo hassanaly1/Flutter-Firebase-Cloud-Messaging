@@ -43,6 +43,8 @@ dependencies:
   delightful_toast: ^1.1.0
   firebase_storage: ^12.2.0
   image_picker: ^1.1.2
+  shimmer: ^3.0.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
