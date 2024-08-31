@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app/controllers/auth_controller.dart';
 import 'package:app/controllers/user_controller.dart';
 import 'package:app/models/user_model.dart';
+import 'package:app/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -26,6 +27,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final MyNotificationService _notificationService = MyNotificationService();
 
   late AuthController _authController;
   late UserController _userController;
@@ -42,6 +44,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    _notificationService.requestNotificationsPermission(context);
+    _notificationService.isTokenRefreshed();
+    _notificationService
+        .getDeviceToken()
+        .then((token) => print('Device Token: $token'));
     _auth.authStateChanges().listen((User? user) {
       if (user == null) {
         print('User is currently signed out!');
