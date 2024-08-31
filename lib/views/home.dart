@@ -44,11 +44,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    // ------------------------------------------------------------------------
+    // Firebase Cloud Messaging
     _notificationService.requestNotificationsPermission(context);
     _notificationService.isTokenRefreshed();
+    _notificationService.firebaseInit();
     _notificationService
         .getDeviceToken()
         .then((token) => print('Device Token: $token'));
+    // ------------------------------------------------------------------------
     _auth.authStateChanges().listen((User? user) {
       if (user == null) {
         print('User is currently signed out!');
