@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:app/views/message.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -63,7 +64,10 @@ class MyNotificationService {
       case AuthorizationStatus.denied:
         print('User denied permission');
         // Prompt to open settings if permission is denied
-        _showOpenSettingsDialog(context);
+        if (context.mounted) {
+          _showOpenSettingsDialog(context);
+        }
+
         break;
       case AuthorizationStatus.notDetermined:
         print('User has not yet determined permission status.');
@@ -102,25 +106,32 @@ class MyNotificationService {
   }
 
 // Initializes Firebase Messaging to listen for incoming notifications
-  void firebaseInit() async {
+  void firebaseInit(BuildContext context) {
     // Listens for messages when the app is in the foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       // Prints the notification title and body to the console
       debugPrint("NotificationTitle: ${message.notification?.title}");
       debugPrint("NotificationBody: ${message.notification?.body}");
+      debugPrint('NotificationData: ${message.data}');
 
       // Checks if the platform is Android before proceeding
       if (Platform.isAndroid) {
         // Initializes local notifications settings
-        initLocalNotifications();
+        if (context.mounted) {
+          initLocalNotifications(context, message);
+        }
+
         // Displays the notification locally on the device
+        _showNotifications(message);
+      } else {
         _showNotifications(message);
       }
     });
   }
 
 // Initializes local notifications settings for Android and iOS
-  void initLocalNotifications() async {
+  void initLocalNotifications(
+      BuildContext context, RemoteMessage message) async {
     // Android-specific initialization settings, using the app launcher icon
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -140,6 +151,7 @@ class MyNotificationService {
         onDidReceiveNotificationResponse: (payload) async {
       // Prints the notification response payload when a notification is tapped
       debugPrint('Notification Response: $payload');
+      handleMessage(context, message);
     });
   }
 
@@ -191,5 +203,21 @@ class MyNotificationService {
         notificationDetails, // Notification settings for Android and iOS
       );
     });
+  }
+
+  Future<void> setupInteractedMessage(BuildContext context) async {
+    // Get the message when the app is in the background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (context.mounted) {
+        handleMessage(context, message);
+      }
+    });
+  }
+
+  void handleMessage(BuildContext context, RemoteMessage message) async {
+    debugPrint('Handling a message: ${message.messageId}');
+    // Redirects the user to the appropriate screen based on the notification payload
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const MessageScreen()));
   }
 }

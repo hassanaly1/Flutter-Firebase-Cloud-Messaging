@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Firebase Cloud Messaging
     _notificationService.requestNotificationsPermission(context);
     _notificationService.isTokenRefreshed();
-    _notificationService.firebaseInit();
+    _notificationService.firebaseInit(context);
     _notificationService
         .getDeviceToken()
         .then((token) => print('Device Token: $token'));
